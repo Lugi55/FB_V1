@@ -1,7 +1,7 @@
 #MicroXplorer Configuration settings - do not modify
 Mcu.Family=STM32G4
 ProjectManager.MainLocation=Core/Src
-NVIC.ADC1_2_IRQn=true\:0\:0\:false\:false\:true\:true\:true
+NVIC.ADC1_2_IRQn=true\:0\:0\:false\:true\:true\:1\:true\:true
 HRTIM1.CompareValue1-Output_TE1TE2=0
 ADC2.ExternalTrigConv=ADC_EXTERNALTRIG_HRTIM_TRG1
 PA6.Mode=IN3-Single-Ended
