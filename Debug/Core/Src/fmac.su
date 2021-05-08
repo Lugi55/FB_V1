@@ -1,0 +1,4 @@
+fmac.c:24:6:USR_FMAC_Config	24	static
+fmac.c:83:6:MX_FMAC_Init	8	static
+fmac.c:104:6:HAL_FMAC_MspInit	24	static
+fmac.c:124:6:HAL_FMAC_MspDeInit	16	static
