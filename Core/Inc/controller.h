@@ -23,8 +23,9 @@
 
 //Prototypes
 void controller_setVoltagePWM(float voltage);
-void controller_setCurrentMeasurement(uint32_t uint_adcVal);
-void controller_setTempMeasurement(uint32_t adcVal);
+void controller_setTempMeasurementHot(uint32_t adcVal);
+void controller_setTempMeasurementCold(uint32_t adcVal);
+
 void controller_printTemp(void);
 
 

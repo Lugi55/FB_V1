@@ -55,6 +55,7 @@ void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc);
+void HAL_UART_TxCptlCallback(UART_HandleTypeDef *huart);
 
 /* USER CODE END EFP */
 

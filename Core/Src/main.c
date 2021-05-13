@@ -20,15 +20,16 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "adc.h"
+#include "dma.h"
 #include "hrtim.h"
 #include "hrtim.h"
+#include "tim.h"
 #include "usart.h"
 #include "gpio.h"
-#include "controller.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "controller.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -62,7 +63,7 @@ static void MX_NVIC_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+char stringBuffer[100];
 /* USER CODE END 0 */
 
 /**
@@ -94,10 +95,12 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_HRTIM1_Init();
-  MX_ADC2_Init();
   MX_USART1_UART_Init();
   MX_ADC1_Init();
+  MX_TIM2_Init();
+  MX_ADC2_Init();
 
   /* Initialize interrupts */
   MX_NVIC_Init();
@@ -107,14 +110,15 @@ int main(void)
   HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED);
   HAL_ADCEx_Calibration_Start(&hadc2, ADC_SINGLE_ENDED);
 
-  //Start ADC
-  //HAL_ADC_Start_DMA (&hadc2, &buffer, 1);
-  HAL_ADC_Start_IT(&hadc1);
-  HAL_ADC_Start_IT(&hadc2);
+
 
   //Start HRTIM
   HAL_HRTIM_WaveformOutputStart(&hhrtim1, HRTIM_OUTPUT_TE1|HRTIM_OUTPUT_TE2);
   HAL_HRTIM_WaveformCounterStart(&hhrtim1, HRTIM_TIMERID_TIMER_E);
+
+  HAL_TIM_Base_Start_IT(&htim2);
+
+  controller_setVoltagePWM(1.5);
 
   /* USER CODE END 2 */
 
@@ -124,9 +128,7 @@ int main(void)
   {
 
 
-	controller_setVoltagePWM(2);
-	HAL_Delay(1000);
-	controller_printTemp();
+
 
     /* USER CODE END WHILE */
 
@@ -202,12 +204,23 @@ static void MX_NVIC_Init(void)
 
 /* USER CODE BEGIN 4 */
 
-void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
-{
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc){
 	if(hadc->Instance == ADC1){
-	controller_setTempMeasurement(HAL_ADC_GetValue(&hadc1));
+	controller_setTempMeasurementCold(HAL_ADC_GetValue(&hadc1));
+	controller_printTemp();
+	HAL_ADC_Stop_IT(&hadc1);
+	}
+	if(hadc->Instance == ADC2){
+	controller_setTempMeasurementHot(HAL_ADC_GetValue(&hadc2));
+	HAL_ADC_Stop_IT(&hadc2);
 	}
 }
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
+	HAL_ADC_Start_IT(&hadc1);
+	HAL_ADC_Start_IT(&hadc2);
+}
+
 
 /* USER CODE END 4 */
 
