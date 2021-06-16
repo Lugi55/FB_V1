@@ -6,6 +6,7 @@
  */
 
 #include "stdint.h"
+#include "types.h"
 
 
 #ifndef INC_CONTROLLER_H_
@@ -13,21 +14,19 @@
 
 
 //defines
-#define R0 10000
-#define T0 25
-#define B 3900
-#define RS 10000
-#define MAX_ADC_VALUE 4096
+#define R0 10000.0f
+#define T0 25.0f
+#define B 3900.0f
+#define RS 10000.0f
+#define MAX_ADC_VALUE 4096.0f
 
 
 
-//Prototypes
+//Prototypes Public
+void controller_update(adcval_t ADCValues);
 void controller_setVoltagePWM(float voltage);
-void controller_setTempMeasurementHot(uint32_t adcVal);
-void controller_setTempMeasurementCold(uint32_t adcVal);
-
-void controller_printTemp(void);
-
+void controller_Controller(void);
+void controller_print(void);
 
 
 #endif /* INC_CONTROLLER_H_ */

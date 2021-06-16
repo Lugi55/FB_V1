@@ -30,6 +30,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "controller.h"
+#include "types.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -56,14 +57,14 @@
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-static void MX_NVIC_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-char stringBuffer[100];
+adcval_t adcVal;
+float i = 0.1;
 /* USER CODE END 0 */
 
 /**
@@ -101,9 +102,6 @@ int main(void)
   MX_ADC1_Init();
   MX_TIM2_Init();
   MX_ADC2_Init();
-
-  /* Initialize interrupts */
-  MX_NVIC_Init();
   /* USER CODE BEGIN 2 */
 
   //Calibration of adc2
@@ -116,9 +114,11 @@ int main(void)
   HAL_HRTIM_WaveformOutputStart(&hhrtim1, HRTIM_OUTPUT_TE1|HRTIM_OUTPUT_TE2);
   HAL_HRTIM_WaveformCounterStart(&hhrtim1, HRTIM_TIMERID_TIMER_E);
 
-  HAL_TIM_Base_Start_IT(&htim2);
 
-  controller_setVoltagePWM(1.5);
+  HAL_TIM_Base_Start_IT(&htim2);
+  HAL_ADC_Start_DMA(&hadc1, adcVal.ADC1Val, 2);
+  HAL_ADC_Start_DMA(&hadc2, adcVal.ADC2Val, 2);
+
 
   /* USER CODE END 2 */
 
@@ -126,6 +126,14 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+
+	  i += 0.01f;
+	  controller_setVoltagePWM(i);
+	  HAL_Delay(100);
+	  if(i > 5){
+		  i=0.1;
+	  }
+
 
 
 
@@ -173,7 +181,7 @@ void SystemClock_Config(void)
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV16;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
 
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_4) != HAL_OK)
@@ -191,35 +199,13 @@ void SystemClock_Config(void)
   }
 }
 
-/**
-  * @brief NVIC Configuration.
-  * @retval None
-  */
-static void MX_NVIC_Init(void)
-{
-  /* ADC1_2_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(ADC1_2_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(ADC1_2_IRQn);
-}
-
 /* USER CODE BEGIN 4 */
 
-void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc){
-	if(hadc->Instance == ADC1){
-	controller_setTempMeasurementCold(HAL_ADC_GetValue(&hadc1));
-	controller_printTemp();
-	HAL_ADC_Stop_IT(&hadc1);
-	}
-	if(hadc->Instance == ADC2){
-	controller_setTempMeasurementHot(HAL_ADC_GetValue(&hadc2));
-	HAL_ADC_Stop_IT(&hadc2);
-	}
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
+	controller_update(adcVal);
+	controller_print();
 }
 
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
-	HAL_ADC_Start_IT(&hadc1);
-	HAL_ADC_Start_IT(&hadc2);
-}
 
 
 /* USER CODE END 4 */

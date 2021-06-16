@@ -38,6 +38,7 @@ extern "C" {
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
 
+
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
@@ -62,8 +63,8 @@ void HAL_UART_TxCptlCallback(UART_HandleTypeDef *huart);
 /* Private defines -----------------------------------------------------------*/
 #define DEADTIME 50
 #define PERIOD_100 54400
-#define BLANKING 100
-#define MAX_PERIOD 40800
+#define BLANKING 200
+#define MAX_PERIOD 36267
 #define LED3_Pin GPIO_PIN_13
 #define LED3_GPIO_Port GPIOC
 #define tg1_Pin GPIO_PIN_11

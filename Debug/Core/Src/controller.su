@@ -1,4 +1,7 @@
-controller.c:29:6:controller_setVoltagePWM	24	static
-controller.c:36:6:controller_setTempMeasurementCold	24	static
-controller.c:48:6:controller_setTempMeasurementHot	24	static
-controller.c:60:6:controller_printTemp	24	static
+controller.c:40:6:controller_Controller	16	static
+controller.c:49:6:controller_update	32	static
+controller.c:60:6:controller_setVoltagePWM	24	static
+controller.c:71:6:controller_print	112	static
+controller.c:95:13:updateTempMeasurementHot	24	static
+controller.c:111:13:updateTempMeasurementCold	24	static
+controller.c:124:13:updateVoltage	16	static
