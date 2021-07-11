@@ -69,7 +69,7 @@ void controller_setVoltagePWMConsumer(float voltage){
 	if(compare < 121){
 		compare = 121;
 	}
-	__HAL_HRTIM_SETCOMPARE(&hhrtim1, HRTIM_TIMERINDEX_TIMER_F, HRTIM_COMPAREUNIT_1,compare);
+	__HAL_HRTIM_SETCOMPARE(&hhrtim1, HRTIM_TIMERINDEX_TIMER_C, HRTIM_COMPAREUNIT_1,compare);
 }
 
 // Function: controller_print
