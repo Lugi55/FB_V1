@@ -17,57 +17,64 @@
 
 //Module Variables
 // ----------------------------------------------------------------------------------------
+float referneceTemp = 20;
 float tempHot;
 float tempCold;
 char stringBuffer[500];
 float setVoltage;
-float refernece = 15;
-uint32_t current;
+float suplyVoltage;
+float current;
 float voltage;
+
+
 
 //static Prototypes
 // ----------------------------------------------------------------------------------------
 static void updateTempMeasurementCold(uint32_t adcVal);
 static void updateTempMeasurementHot(uint32_t adcVal);
 static void updateVoltage(uint32_t adcVal);
+static void updateSuplyVoltage(uint32_t adcVal);
+static void updateCurrent(uint32_t adcVal);
+static void updateSetVoltagePWM();
+static void controller();
 
 
-
-// Function: controller_Controller
-// ----------------------------------------------------------------------------------------
-//   input: void
-//   return: void
-void controller_Controller(){
-	float e;
-	e = refernece - tempCold;
-}
 
 // Function: controller_update
 // ----------------------------------------------------------------------------------------
-//   input: *ADCValues	Array of ADC Values
-//   return: void
+//
 void controller_update(adcval_t ADCValues){
 	updateTempMeasurementCold(ADCValues.ADC1Val[0]);
 	updateTempMeasurementHot(ADCValues.ADC1Val[1]);
 	updateVoltage(ADCValues.ADC2Val[0]);
-	current = ADCValues.ADC2Val[1];
+	updateCurrent(ADCValues.ADC2Val[1]);
+	updateSuplyVoltage(ADCValues.ADC5Val[0]);
+	controller();
+	updateSetVoltagePWM();
 }
 
-// Function: controller_setPWM
+// Function: controller_setVoltagePWM
 // ----------------------------------------------------------------------------------------
-//   input-> voltage:
-//   return: void
+//
 void controller_setVoltagePWM(float voltage){
-	uint32_t compare;
 	setVoltage = voltage;
-	compare = voltage/12.0f*PERIOD_100;
-	__HAL_HRTIM_SETCOMPARE(&hhrtim1, HRTIM_TIMERINDEX_TIMER_E, HRTIM_COMPAREUNIT_1,compare);
+}
+
+// Function: controller_setVoltagePWMConsumer
+// ----------------------------------------------------------------------------------------
+//
+void controller_setVoltagePWMConsumer(float voltage){
+	uint32_t compare;
+	compare = voltage/suplyVoltage*PERIOD_100;
+	if(compare < 121){
+		compare = 121;
+	}
+	__HAL_HRTIM_SETCOMPARE(&hhrtim1, HRTIM_TIMERINDEX_TIMER_F, HRTIM_COMPAREUNIT_1,compare);
 }
 
 // Function: controller_print
 // ----------------------------------------------------------------------------------------
-//   input: void
-//   return: void
+//
 void controller_print(){
 	char stringBufferTemp[100];
 	stringBuffer[0] = '\0';
@@ -79,9 +86,11 @@ void controller_print(){
 	strcat(stringBuffer,stringBufferTemp);
 	sprintf(stringBufferTemp, "\"ColdTemp\":%.3f,",tempCold);
 	strcat(stringBuffer,stringBufferTemp);
-	sprintf(stringBufferTemp, "\"Current\":%u,",current);
+	sprintf(stringBufferTemp, "\"Current\":%.3f,",current);
 	strcat(stringBuffer,stringBufferTemp);
-	sprintf(stringBufferTemp, "\"Voltage\":%.3f",voltage);
+	sprintf(stringBufferTemp, "\"Voltage\":%.3f,",voltage);
+	strcat(stringBuffer,stringBufferTemp);
+	sprintf(stringBufferTemp, "\"SuplyVoltage\":%.3f",suplyVoltage);
 	strcat(stringBuffer,stringBufferTemp);
 	sprintf(stringBufferTemp, "\n\r");
 	strcat(stringBuffer,stringBufferTemp);
@@ -90,11 +99,10 @@ void controller_print(){
 
 // Function: updateTempMeasurementHot
 // ----------------------------------------------------------------------------------------
-//   input: uint32_t adcVal
-//   return: void
+//
 static void updateTempMeasurementHot(uint32_t adcVal){
 	float R;
-	R = adcVal/MAX_ADC_VALUE * 3.3f;
+	R = 3.3f*adcVal/MAX_ADC_VALUE;
 	R = R0*3.3f/R - R0;
 	tempHot = R/R0;
 	tempHot = log(tempHot);
@@ -106,11 +114,10 @@ static void updateTempMeasurementHot(uint32_t adcVal){
 
 // Function: updateTempMeasurementCold
 // ----------------------------------------------------------------------------------------
-//   input: uint32_t adcVal
-//   return: void
+//
 static void updateTempMeasurementCold(uint32_t adcVal){
 	float R;
-	R = adcVal/MAX_ADC_VALUE * 3.3f;
+	R = 3.3f*adcVal/MAX_ADC_VALUE;
 	R = R0*3.3f/R - R0;
 	tempCold = R/R0;
 	tempCold = log(tempCold);
@@ -120,11 +127,58 @@ static void updateTempMeasurementCold(uint32_t adcVal){
 	tempCold -= 273.15f;
 }
 
-
+// Function: updateVoltage
+// ----------------------------------------------------------------------------------------
+//
 static void updateVoltage(uint32_t adcVal){
-	voltage = adcVal/MAX_ADC_VALUE * 3.3f;
-	voltage *= 4;
+	voltage = 3.3f*adcVal/MAX_ADC_VALUE;
+	voltage *= 4.0f;
 }
 
+// Function: updateSuplyVoltage
+// ----------------------------------------------------------------------------------------
+//
+static void updateSuplyVoltage(uint32_t adcVal){
+	suplyVoltage = 3.3f*adcVal/MAX_ADC_VALUE;
+	suplyVoltage *= 4.0f;
+}
+
+// Function: updateCurrent
+// ----------------------------------------------------------------------------------------
+//
+static void updateCurrent(uint32_t adcVal){
+	current = 3.3f*adcVal/MAX_ADC_VALUE;
+	current -= 1.65f;
+	current /= -20;
+	current /= 0.02;
+}
+
+static void updateSetVoltagePWM(){
+	uint32_t compare;
+	compare = VOLTAGE_GAIN*setVoltage/suplyVoltage*PERIOD_100;
+	if(compare < 121){
+		compare = 121;
+	}
+	__HAL_HRTIM_SETCOMPARE(&hhrtim1, HRTIM_TIMERINDEX_TIMER_E, HRTIM_COMPAREUNIT_1,compare);
+}
+
+
+
+static void controller(){
+	static float uk1 = 0;
+	static float ek1 = 0;
+	float ek;
+	float uk;
+	ek = -(referneceTemp - tempCold);
+	uk = uk1 + 0.617*ek - 0.6*ek1;
+
+	if(uk>5){
+		uk=5;
+	}
+
+	uk1 = uk;
+	ek1 = ek;
+	setVoltage = uk;
+}
 
 

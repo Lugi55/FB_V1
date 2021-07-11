@@ -64,7 +64,7 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 adcval_t adcVal;
-float i = 0.1;
+float i = 0.3;
 /* USER CODE END 0 */
 
 /**
@@ -102,11 +102,13 @@ int main(void)
   MX_ADC1_Init();
   MX_TIM2_Init();
   MX_ADC2_Init();
+  MX_ADC5_Init();
   /* USER CODE BEGIN 2 */
 
   //Calibration of adc2
   HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED);
   HAL_ADCEx_Calibration_Start(&hadc2, ADC_SINGLE_ENDED);
+  HAL_ADCEx_Calibration_Start(&hadc5, ADC_SINGLE_ENDED);
 
 
 
@@ -114,10 +116,16 @@ int main(void)
   HAL_HRTIM_WaveformOutputStart(&hhrtim1, HRTIM_OUTPUT_TE1|HRTIM_OUTPUT_TE2);
   HAL_HRTIM_WaveformCounterStart(&hhrtim1, HRTIM_TIMERID_TIMER_E);
 
+  HAL_HRTIM_WaveformOutputStart(&hhrtim1, HRTIM_OUTPUT_TF1|HRTIM_OUTPUT_TF2);
+  HAL_HRTIM_WaveformCounterStart(&hhrtim1, HRTIM_TIMERID_TIMER_F);
+
 
   HAL_TIM_Base_Start_IT(&htim2);
   HAL_ADC_Start_DMA(&hadc1, adcVal.ADC1Val, 2);
   HAL_ADC_Start_DMA(&hadc2, adcVal.ADC2Val, 2);
+  HAL_ADC_Start_DMA(&hadc5, adcVal.ADC5Val, 1);
+
+
 
 
   /* USER CODE END 2 */
@@ -127,14 +135,17 @@ int main(void)
   while (1)
   {
 
-	  i += 0.01f;
-	  controller_setVoltagePWM(i);
-	  HAL_Delay(100);
-	  if(i > 5){
-		  i=0.1;
-	  }
+	  controller_setVoltagePWMConsumer(0.5);
+	  HAL_Delay(3000);
+	  controller_setVoltagePWMConsumer(1);
+	  HAL_Delay(3000);
 
-
+//	  i += 0.001f;
+//	  controller_setVoltagePWM(i);
+//	  HAL_Delay(100);
+//	  if(i > 6){
+//		  i=0;
+//	  }
 
 
 
@@ -190,9 +201,11 @@ void SystemClock_Config(void)
   }
   /** Initializes the peripherals clocks
   */
-  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART1|RCC_PERIPHCLK_ADC12;
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART1|RCC_PERIPHCLK_ADC12
+                              |RCC_PERIPHCLK_ADC345;
   PeriphClkInit.Usart1ClockSelection = RCC_USART1CLKSOURCE_PCLK2;
   PeriphClkInit.Adc12ClockSelection = RCC_ADC12CLKSOURCE_SYSCLK;
+  PeriphClkInit.Adc345ClockSelection = RCC_ADC345CLKSOURCE_SYSCLK;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();

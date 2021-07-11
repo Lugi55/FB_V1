@@ -12,6 +12,7 @@
 typedef struct{
 	uint32_t ADC1Val[2];
 	uint32_t ADC2Val[2];
+	uint32_t ADC5Val[1];
 } adcval_t;
 
 
