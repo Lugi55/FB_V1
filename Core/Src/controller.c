@@ -25,6 +25,7 @@ float setVoltage;
 float suplyVoltage;
 float current;
 float voltage;
+float PWMConsumerVoltage;
 
 
 
@@ -60,10 +61,18 @@ void controller_setVoltagePWM(float voltage){
 	setVoltage = voltage;
 }
 
+// Function: controller_setReferenceTemp
+// ----------------------------------------------------------------------------------------
+//
+void controller_setReferenceTemp(float temp){
+	referneceTemp = temp;
+}
+
 // Function: controller_setVoltagePWMConsumer
 // ----------------------------------------------------------------------------------------
 //
 void controller_setVoltagePWMConsumer(float voltage){
+	PWMConsumerVoltage = voltage;
 	uint32_t compare;
 	compare = voltage/suplyVoltage*PERIOD_100;
 	if(compare < 121){
@@ -88,7 +97,11 @@ void controller_print(){
 	strcat(stringBuffer,stringBufferTemp);
 	sprintf(stringBufferTemp, "\"Current\":%.3f,",current);
 	strcat(stringBuffer,stringBufferTemp);
+	sprintf(stringBufferTemp, "\"RefTemp\":%.3f,",referneceTemp);
+	strcat(stringBuffer,stringBufferTemp);
 	sprintf(stringBufferTemp, "\"Voltage\":%.3f,",voltage);
+	strcat(stringBuffer,stringBufferTemp);
+	sprintf(stringBufferTemp, "\"PWMConsumerVoltage\":%.3f,",PWMConsumerVoltage);
 	strcat(stringBuffer,stringBufferTemp);
 	sprintf(stringBufferTemp, "\"SuplyVoltage\":%.3f",suplyVoltage);
 	strcat(stringBuffer,stringBufferTemp);
@@ -165,15 +178,17 @@ static void updateSetVoltagePWM(){
 
 
 static void controller(){
+	HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
 	static float uk1 = 0;
 	static float ek1 = 0;
-	float ek;
-	float uk;
-	ek = -(referneceTemp - tempCold);
-	uk = uk1 + 0.617*ek - 0.6*ek1;
+	float ek = -(referneceTemp - tempCold);
+	float uk = uk1 + 0.5642f*ek - 0.55f*ek1;
 
 	if(uk>5){
 		uk=5;
+	}
+	if(uk<0){
+		uk = 0;
 	}
 
 	uk1 = uk;

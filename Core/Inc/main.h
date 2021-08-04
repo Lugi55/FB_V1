@@ -67,10 +67,12 @@ void HAL_UART_TxCptlCallback(UART_HandleTypeDef *huart);
 #define MAX_PERIOD 36267
 #define LED3_Pin GPIO_PIN_13
 #define LED3_GPIO_Port GPIOC
-#define tg1_Pin GPIO_PIN_11
-#define tg1_GPIO_Port GPIOC
+#define LED2_Pin GPIO_PIN_10
+#define LED2_GPIO_Port GPIOA
 #define LED4_Pin GPIO_PIN_4
 #define LED4_GPIO_Port GPIOB
+#define LED5_Pin GPIO_PIN_5
+#define LED5_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

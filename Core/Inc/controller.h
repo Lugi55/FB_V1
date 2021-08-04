@@ -28,6 +28,7 @@ void controller_update(adcval_t ADCValues);
 void controller_setVoltagePWM(float voltage);
 void controller_print(void);
 void controller_setVoltagePWMConsumer(float voltage);
+void controller_setReferenceTemp(float temp);
 
 
 #endif /* INC_CONTROLLER_H_ */

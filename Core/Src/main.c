@@ -64,7 +64,7 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 adcval_t adcVal;
-float i = 0.3;
+
 /* USER CODE END 0 */
 
 /**
@@ -120,10 +120,12 @@ int main(void)
   HAL_HRTIM_WaveformCounterStart(&hhrtim1, HRTIM_TIMERID_TIMER_C);
 
 
-  HAL_TIM_Base_Start_IT(&htim2);
+
   HAL_ADC_Start_DMA(&hadc1, adcVal.ADC1Val, 2);
   HAL_ADC_Start_DMA(&hadc2, adcVal.ADC2Val, 2);
   HAL_ADC_Start_DMA(&hadc5, adcVal.ADC5Val, 1);
+  HAL_Delay(1);
+  HAL_TIM_Base_Start_IT(&htim2);
 
 
 
@@ -135,17 +137,15 @@ int main(void)
   while (1)
   {
 
-	  controller_setVoltagePWMConsumer(0.5);
-	  HAL_Delay(3000);
-	  controller_setVoltagePWMConsumer(1);
-	  HAL_Delay(3000);
+	  //controller_setVoltagePWMConsumer(0);
+	  controller_setReferenceTemp(20);
+	  //controller_setVoltagePWM(0.15);
+	  HAL_Delay(100000);
 
-//	  i += 0.001f;
-//	  controller_setVoltagePWM(i);
-//	  HAL_Delay(100);
-//	  if(i > 6){
-//		  i=0;
-//	  }
+	  //controller_setVoltagePWMConsumer(5);
+	  controller_setReferenceTemp(18);
+	  //controller_setVoltagePWM(0.4);
+	  HAL_Delay(100000);
 
 
 
